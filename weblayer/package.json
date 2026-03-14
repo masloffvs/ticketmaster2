@@ -1,0 +1,36 @@
+{
+  "name": "weblayer",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "rspack dev",
+    "build": "rspack build",
+    "preview": "rspack preview"
+  },
+  "dependencies": {
+    "less": "^4.6.4",
+    "less-loader": "^12.3.2",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-router-dom": "^7.13.1",
+    "styled-components": "^6.3.11",
+    "swr": "^2.4.1"
+  },
+  "devDependencies": {
+    "@rspack/cli": "^1.7.8",
+    "@rspack/core": "^1.7.8",
+    "@rspack/plugin-react-refresh": "^1.6.0",
+    "@swc/cli": "^0.8.0",
+    "@swc/core": "^1.15.18",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "@types/styled-components": "^5.1.36",
+    "autoprefixer": "^10.4.27",
+    "biome": "^0.3.3",
+    "postcss": "^8.5.8",
+    "postcss-loader": "^8.2.1",
+    "postcss-preset-env": "^11.2.0",
+    "react-refresh": "^0.18.0",
+    "typescript": "^5.9.3"
+  }
+}

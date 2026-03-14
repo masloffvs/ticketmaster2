@@ -1,0 +1,15 @@
+/* Некритический CSS. Загружается паралелльно или через JS */
+
+/* Тут могут быть сложные анимации или утилиты, не блокирующие первый рендер */
+.utils-hide {
+  display: none !important;
+}
+
+.utils-fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
