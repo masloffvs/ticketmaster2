@@ -1,165 +1,119 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import styled from 'styled-components';
-import useSWR from 'swr';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import styled from "styled-components";
+import { useI18n } from "../i18n/I18nProvider";
+import { useArtistStore } from "../store/useArtistStore";
+import {
+  AboutTab,
+  ExperienceTab,
+  FansAlsoViewedTab,
+  FaqsTab,
+  GalleryTab,
+  ReviewsTab,
+  SetlistsTab,
+} from "./ArtistTabs";
+import { ArtistConcertsSection } from "./artist-page/ArtistConcertsSection";
+import { ArtistHero } from "./artist-page/ArtistHero";
+import { ArtistSectionNav } from "./artist-page/ArtistSectionNav";
+import { MENU_ITEM_KEYS, type MenuItemKey } from "./artist-page/constants";
 
 const PageContainer = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
   width: 100%;
+  background-color: var(--color-white);
+  min-height: 100vh;
 `;
 
-const ArtistHeader = styled.div`
-  background: var(--color-header-blue);
-  color: var(--color-white);
-  padding: 3rem 2rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
+const ScrollSection = styled.section`
+  scroll-margin-top: 88px;
+`;
 
-  h1 {
-    margin: 0;
-    font-size: 3rem;
+const renderSection = (key: MenuItemKey) => {
+  switch (key) {
+    case "concerts":
+      return <ArtistConcertsSection />;
+    case "experience":
+      return <ExperienceTab />;
+    case "gallery":
+      return <GalleryTab />;
+    case "about":
+      return <AboutTab />;
+    case "setlists":
+      return <SetlistsTab />;
+    case "faqs":
+      return <FaqsTab />;
+    case "reviews":
+      return <ReviewsTab />;
+    case "fansAlsoViewed":
+      return <FansAlsoViewedTab />;
+    default:
+      return null;
   }
-`;
-
-const ContentArea = styled.div`
-  display: flex;
-  gap: 2rem;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-`;
-
-const Sidebar = styled.aside`
-  flex: 1;
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  height: fit-content;
-`;
-
-const EventsList = styled.main`
-  flex: 3;
-`;
-
-const EventRow = styled.div`
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  button {
-    background: var(--color-primary);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    font-family: inherit;
-
-    &:hover {
-      background: var(--color-header-blue);
-    }
-  }
-`;
-
-const DateBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-right: 2rem;
-
-  .month {
-    font-size: 0.9rem;
-    color: var(--color-primary);
-    text-transform: uppercase;
-    font-weight: bold;
-  }
-  .day {
-    font-size: 1.8rem;
-    font-weight: bold;
-  }
-`;
-
-const EventDetails = styled.div`
-  flex-grow: 1;
-
-  .title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 0.3rem;
-  }
-  .venue {
-    color: #666;
-    font-size: 0.95rem;
-  }
-`;
-
-// Mock fetcher for artist data
-const fetchArtist = (url: string) => {
-  // Extract id from URL for demo purposes
-  const parts = url.split('/');
-  const id = parts[parts.length - 1];
-  
-  return new Promise<any>(resolve => setTimeout(() => resolve({
-    id,
-    name: url.includes('mccartney') ? 'Paul McCartney' : 'Mock Artist Name',
-    bio: 'One of the most successful composers and performers of all time...',
-    upcomingEvents: [
-      { id: 101, title: 'Got Back Tour', venue: 'Wembley Stadium, London, UK', date: '2026-10-15', mon: 'OCT', day: '15' },
-      { id: 102, title: 'Got Back Tour', venue: 'O2 Arena, London, UK', date: '2026-10-18', mon: 'OCT', day: '18' },
-    ]
-  }), 600));
 };
 
 export const ArtistPage = () => {
-  const { artistSlug, artistId } = useParams();
-  const { data: artist, error, isLoading } = useSWR(`/api/notBindings/artist/${artistId}`, fetchArtist);
+  const { artistId } = useParams();
+  const [activeTab, setActiveTab] = useState<MenuItemKey>("concerts");
+  const { t } = useI18n();
+  const { artist, isLoading, fetchArtistData } = useArtistStore();
 
-  if (isLoading) return <PageContainer>Loading artist details...</PageContainer>;
-  if (error || !artist) return <PageContainer>Error loading artist</PageContainer>;
+  useEffect(() => {
+    if (artistId) {
+      fetchArtistData(artistId);
+    }
+  }, [artistId, fetchArtistData]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const threshold = 120;
+
+      for (let index = MENU_ITEM_KEYS.length - 1; index >= 0; index -= 1) {
+        const key = MENU_ITEM_KEYS[index];
+        const element = document.getElementById(key);
+
+        if (element && element.getBoundingClientRect().top <= threshold) {
+          setActiveTab((current) => (current === key ? current : key));
+          return;
+        }
+      }
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const scrollToSection = (sectionId: MenuItemKey) => {
+    const element = document.getElementById(sectionId);
+
+    if (!element) {
+      return;
+    }
+
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveTab(sectionId);
+  };
+
+  if (isLoading || !artist) {
+    return (
+      <PageContainer style={{ padding: "4rem", textAlign: "center" }} aria-live="polite">
+        {t("artistPage.loading")}
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
-      <ArtistHeader>
-        <h1>{artist.name} Tickets</h1>
-      </ArtistHeader>
+      <ArtistHero artist={artist} />
+      <ArtistSectionNav activeTab={activeTab} items={MENU_ITEM_KEYS} onSelect={scrollToSection} />
 
-      <ContentArea>
-        <Sidebar>
-          <h3>About {artist.name}</h3>
-          <p>{artist.bio}</p>
-          <p>ID in system: {artistId}</p>
-          <p>Slug used: {artistSlug}</p>
-        </Sidebar>
-
-        <EventsList>
-          <h2>Upcoming Events</h2>
-          {artist.upcomingEvents.map((ev: any) => (
-            <EventRow key={ev.id}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <DateBox>
-                  <span className="month">{ev.mon}</span>
-                  <span className="day">{ev.day}</span>
-                </DateBox>
-                <EventDetails>
-                  <div className="title">{ev.title}</div>
-                  <div className="venue">{ev.venue}</div>
-                </EventDetails>
-              </div>
-              <button>See Tickets</button>
-            </EventRow>
-          ))}
-        </EventsList>
-      </ContentArea>
+      {MENU_ITEM_KEYS.map((key) => (
+        <ScrollSection key={key} id={key} aria-labelledby={`${key}-nav-item`}>
+          {renderSection(key)}
+        </ScrollSection>
+      ))}
     </PageContainer>
   );
 };

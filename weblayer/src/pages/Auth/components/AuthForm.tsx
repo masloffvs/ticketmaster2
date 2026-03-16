@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Button, Input, Checkbox } from '../../../design-system';
+import { Button, Input } from '../../../design-system';
+import { useI18n } from '../../../i18n/I18nProvider';
 
 const FormContainer = styled.div`
   flex: 1;
@@ -75,14 +76,15 @@ const TermsText = styled.div`
 
 export const AuthForm = () => {
   const [email, setEmail] = useState('');
+  const { t } = useI18n();
 
   return (
     <FormContainer>
-      <Title>Sign In Or Create Account</Title>
-      <Subtitle>If you don't have an account you will be prompted to create one.</Subtitle>
+      <Title>{t('auth.title')}</Title>
+      <Subtitle>{t('auth.subtitle')}</Subtitle>
 
       <Input 
-        label="Email Address"
+        label={t('auth.emailAddress')}
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -90,28 +92,21 @@ export const AuthForm = () => {
       />
 
       <Button fullWidth disabled={!email.includes('@')}>
-        Continue
+        {t('auth.continue')}
       </Button>
 
-      <Divider>Or</Divider>
+      <Divider>{t('auth.or')}</Divider>
 
       <Button variant="secondary" fullWidth>
-        How To Add A Passkey
+        {t('auth.addPasskey')}
       </Button>
 
       <TermsText>
         <p>
-          By continuing past this page, I acknowledge that I have read
-          and agree to the current <a href="#">Terms of Use</a>, including the arbitration
-          agreement and class action waiver, updated in August 2025,
-          and understand that information will be used as described in
-          our <a href="#">Privacy Policy</a>.
+          {t('auth.termsIntro')} <a href="#">{t('auth.termsOfUse')}</a>, {t('auth.termsMiddle')} <a href="#">{t('auth.privacyPolicy')}</a>.
         </p>
         <p>
-          As set forth in our Privacy Policy, we may use your information
-          for email marketing, including promotions and updates on our
-          own or third-party products. You can opt out of our marketing
-          emails anytime.
+          {t('auth.marketing')}
         </p>
       </TermsText>
     </FormContainer>

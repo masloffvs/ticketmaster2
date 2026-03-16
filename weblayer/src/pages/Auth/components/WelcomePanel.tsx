@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useI18n } from '../../../i18n/I18nProvider';
 
 const Panel = styled.div`
   width: 320px;
@@ -45,12 +46,14 @@ const BottomLogo = styled.div`
 `;
 
 export const WelcomePanel = () => {
+  const { t } = useI18n();
+
   return (
     <Panel>
-      <Title>WELCOME</Title>
+      <Title>{t('auth.welcome')}</Title>
       <Underline />
       <Description>
-        Discover millions of events, get alerts about your favorite artists, teams, plays and more — plus always- secure, effortless ticketing.
+        {t('auth.welcomeDescription')}
       </Description>
       <BottomLogo>t</BottomLogo>
     </Panel>

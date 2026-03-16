@@ -1,0 +1,91 @@
+services:
+  # ── PostgreSQL ──────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ticketmaster
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Serverlayer (x86_64 binary) ─────────────────────────────────
+  server:
+    build:
+      context: .
+      dockerfile: serverlayer/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: "production"
+      PORT: "3000"
+      HOST: "0.0.0.0"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: ticketmaster
+      TM_CONSUMER_KEY: "JVGgt7XEa7zZGzpZ4OtgoA4j5vWQywQ1"
+      TM_CONSUMER_SECRET: "r8Li8UGl6k0ZHLNy"
+      TM_BASE_URL: "https://app.ticketmaster.com"
+      TM_API_VERSION: "v2"
+    expose:
+      - "3000"
+
+  # ── Workerslayer (x86_64 binary) ────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: workerslayer/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: ticketmaster
+
+  # ── OpenResty (nginx + lua) ─────────────────────────────────────
+  nginx:
+    build:
+      context: nginx-http3
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - server
+      - transparency-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+
+      # - "8181:80/tcp"
+      # - "8443:443/tcp"
+    volumes:
+      - ./bins/weblayer:/var/www/weblayer:ro
+      - ./nginx-http3/certs:/etc/nginx/certs:ro
+
+  # ── Transparency Proxy (ticketmaster.com → localhost) ───────────
+  transparency-proxy:
+    build:
+      context: transparency-proxy
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PROXY_BASE_URL: "https://localhost"
+      # UPSTREAM_PROXY: "http://user:pass@proxy-host:8080"
+    expose:
+      - "80"
+
+volumes:
+  pgdata:

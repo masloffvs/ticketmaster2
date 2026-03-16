@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { useI18n } from "../i18n/I18nProvider";
 
 const HeaderWrapper = styled.div`
   display: flex;
@@ -99,7 +99,7 @@ const HeaderLeft = styled.div`
   gap: 2rem;
 `;
 
-const Logo = styled(Link)`
+const Logo = styled.a`
   font-size: 1.8rem;
   font-weight: 800;
   font-style: italic;
@@ -128,9 +128,29 @@ const NavLinks = styled.nav`
 const HeaderRight = styled.div`
   display: flex;
   align-items: center;
+  gap: 1rem;
 `;
 
-const SignInOutButton = styled(Link)`
+const LanguageToggle = styled.div`
+  display: inline-flex;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  overflow: hidden;
+`;
+
+const LanguageButton = styled.button<{ $active: boolean }>`
+  background: ${(props) =>
+    props.$active ? "rgba(255, 255, 255, 0.18)" : "transparent"};
+  color: var(--color-white);
+  border: none;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+`;
+
+const SignInOutButton = styled.a`
   background: transparent;
   border: none;
   color: var(--color-white);
@@ -149,6 +169,8 @@ const SignInOutButton = styled(Link)`
 `;
 
 export const Header = () => {
+  const { locale, setLocale, t } = useI18n();
+
   return (
     <HeaderWrapper>
       <UtilityBar>
@@ -179,10 +201,10 @@ export const Header = () => {
           <span aria-hidden="true">US</span>
         </CountrySelect>
 
-        <UtilNav aria-label="Additional Links">
+        <UtilNav aria-label={t("header.additionalLinks")}>
           <ul>
             <li>
-              <Link to="/#hotels">
+              <a href="/#hotels">
                 <svg
                   viewBox="0 0 24 24"
                   width="1.2em"
@@ -192,14 +214,14 @@ export const Header = () => {
                 >
                   <path d="M18.5 10H17V7.22L16.1 6H7.9L7 7.22V10H5.5V4.58l.74-1.08h11.52l.74 1.08zM17 11.5h3.38l1.12 1.12v4.88h-19v-4.88l1.12-1.12zM15.5 10h-7V7.72l.16-.22h6.68l.16.22zM4 4.11V10H3l-2 2v10h1.5v-3h19v3H23V12l-2-2h-1V4.11L18.55 2H5.45z"></path>
                 </svg>
-                Hotels
-              </Link>
+                {t("header.hotels")}
+              </a>
             </li>
             <li>
-              <Link to="/sell">Sell</Link>
+              <a href="/sell">{t("header.sell")}</a>
             </li>
             <li>
-              <Link to="/giftcards">
+              <a href="/giftcards">
                 <svg
                   viewBox="0 0 24 24"
                   width="1.2em"
@@ -209,14 +231,14 @@ export const Header = () => {
                 >
                   <path d="M1 3.25h22v14.32l-3.08 3.18H1zm1.5 1.5v4.64H4v-2.3l1.56-1.03 2.19 1.9V4.74zm4.62 4.64L5.5 7.99v1.4zm2.13-4.64v3.6l2.7-2.29L13.5 7.1v2.29h8V4.75zM12 9.39v-1.4l-1.66 1.4zm-5.13 1.5H2.5v8.36h5.25v-6.82l-2.09 3.92-1.32-.7zm2.38 8.36h10.03l2.22-2.3V10.9H10.13l2.53 4.76-1.32.7-2.09-3.92z"></path>
                 </svg>
-                Gift Cards
-              </Link>
+                {t("header.giftCards")}
+              </a>
             </li>
             <li>
-              <Link to="/help">Help</Link>
+              <a href="/help">{t("header.help")}</a>
             </li>
             <li>
-              <Link to="/vip">VIP</Link>
+              <a href="/vip">{t("header.vip")}</a>
             </li>
           </ul>
         </UtilNav>
@@ -236,18 +258,34 @@ export const Header = () => {
       {/* Основная шапка (пока без поисковой формы) */}
       <MainHeader>
         <HeaderLeft>
-          <Logo to="/">ticketmaster®</Logo>
+          <Logo href="/">ticketmaster®</Logo>
           <NavLinks>
-            <Link to="/#concerts">Concerts</Link>
-            <Link to="/#sports">Sports</Link>
-            <Link to="/#arts">Arts, Theater & Comedy</Link>
-            <Link to="/#family">Family</Link>
-            <Link to="/#cities">Cities</Link>
+            <a href="/#concerts">{t("common.concerts")}</a>
+            <a href="/#sports">{t("header.sports")}</a>
+            <a href="/#arts">{t("header.arts")}</a>
+            <a href="/#family">{t("header.family")}</a>
+            <a href="/#cities">{t("header.cities")}</a>
           </NavLinks>
         </HeaderLeft>
 
         <HeaderRight>
-          <SignInOutButton to="/as/authorization.oauth2">
+          <LanguageToggle aria-label={t("header.language")}>
+            <LanguageButton
+              type="button"
+              $active={locale === "en"}
+              onClick={() => setLocale("en")}
+            >
+              EN
+            </LanguageButton>
+            <LanguageButton
+              type="button"
+              $active={locale === "ru"}
+              onClick={() => setLocale("ru")}
+            >
+              RU
+            </LanguageButton>
+          </LanguageToggle>
+          <SignInOutButton href="/as/authorization.oauth2">
             <svg
               viewBox="0 0 24 24"
               width="1.4em"
@@ -259,7 +297,7 @@ export const Header = () => {
               <title>User account</title>
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
             </svg>
-            Sign In/Register
+            {t("header.signIn")}
           </SignInOutButton>
         </HeaderRight>
       </MainHeader>

@@ -36,3 +36,16 @@ dist-ssr
 weblayer/dist/
 build/
 out/
+
+env.yml
+bun.lock
+
+cache/
+tmp
+
+main.bin
+*.bin
+
+bins/
+
+nginx-http3/certs

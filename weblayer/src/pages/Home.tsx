@@ -1,6 +1,10 @@
-import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import useSWR from "swr";
+import { useI18n } from "../i18n/I18nProvider";
+import { ArtistShowcaseCard } from "./home/ArtistShowcaseCard";
+import { HomeHero } from "./home/HomeHero";
+import { TrendingEventCard } from "./home/TrendingEventCard";
+import type { HomeArtist, HomeEvent } from "./home/types";
 
 const MainContent = styled.main`
   max-width: 1200px;
@@ -9,24 +13,12 @@ const MainContent = styled.main`
   width: 100%;
 `;
 
-const HeroSection = styled.section`
-  background: linear-gradient(135deg, #026cdf 0%, #013e80 100%);
-  color: white;
-  padding: 4rem 2rem;
-  border-radius: 12px;
-  margin-bottom: 3rem;
-  text-align: center;
-
-  h2 {
-    margin-top: 0;
-    font-size: 2.8rem;
-    margin-bottom: 0.5rem;
-  }
-
-  p {
-    font-size: 1.2rem;
-    opacity: 0.9;
-  }
+const SectionTitle = styled.h2`
+  font-size: 1.5rem;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 `;
 
 const EventsGrid = styled.div`
@@ -35,60 +27,29 @@ const EventsGrid = styled.div`
   gap: 2rem;
 `;
 
-const EventCard = styled.div`
-  background: white;
-  border-radius: 8px;
-  padding: 1.2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-  }
+const StatusMessage = styled.p`
+  color: #475569;
 `;
 
-const EventImagePlaceholder = styled.div`
-  background-color: #e2e8f0;
-  height: 160px;
-  border-radius: 6px;
-  margin-bottom: 1.2rem;
-`;
+const FEATURED_ARTISTS: HomeArtist[] = [
+  {
+    genre: "Rock",
+    id: 1,
+    imageColor: "#026cdf",
+    name: "Shinedown",
+    slug: "shinedown-tickets",
+  },
+  {
+    genre: "Classic Rock",
+    id: 2,
+    imageColor: "#bebebe",
+    name: "Paul McCartney",
+    slug: "paul-mccartney-tickets",
+  },
+];
 
-const EventTitle = styled.div`
-  font-weight: 700;
-  font-size: 1.1rem;
-  margin-bottom: 0.8rem;
-  line-height: 1.3;
-`;
-
-const EventMeta = styled.div`
-  color: #64748b;
-  font-size: 0.9rem;
-  margin-bottom: 0.4rem;
-`;
-
-const EventPrice = styled.div`
-  margin-top: 1.2rem;
-  font-weight: 700;
-  color: #026cdf;
-  font-size: 1.1rem;
-`;
-
-interface Event {
-  id: number;
-  title: string;
-  date: string;
-  venue: string;
-  price: string;
-}
-
-// Mock fetcher для SWR, эмулирующий задержку базы данных
 const fetcher = () =>
-  new Promise<Event[]>((resolve) =>
+  new Promise<HomeEvent[]>((resolve) =>
     setTimeout(
       () =>
         resolve([
@@ -106,69 +67,83 @@ const fetcher = () =>
             venue: "O2 Arena",
             price: "£110",
           },
-          {
-            id: 3,
-            title: "Champions League Final",
-            date: "May 30, 2026",
-            venue: "Santiago Bernabéu",
-            price: "€350",
-          },
-          {
-            id: 4,
-            title: "Hamilton - The Musical",
-            date: "Ongoing",
-            venue: "Victoria Palace Theatre",
-            price: "£55",
-          },
         ]),
       500,
     ),
   );
 
 export const Home = () => {
-  const navigate = useNavigate();
+  const { t } = useI18n();
+  const {
+    data: events,
+    error,
+    isLoading,
+  } = useSWR<HomeEvent[]>("/api/events/trending", fetcher);
 
-  const handleCardClick = (event: Event) => {
+  const handleEventClick = (event: HomeEvent) => {
     const slug =
       event.title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "") + "-tickets";
-    const acLinks = `?ac_link=ursa_ae182a25-3001-4462-a0aa-167d87f6f9ad_a_${event.id}&ac_link=iccp_hp_t3_fallback_K8vZ9175R0V`;
-    navigate(`/${slug}/event/${event.id}${acLinks}`);
+    const acLinks =
+      "?ac_link=ursa_ae182a25-3001-4462-a0aa-167d87f6f9ad_a_" +
+      `${event.id}&ac_link=iccp_hp_t3_fallback_K8vZ9175R0V`;
+
+    window.location.href = `/${slug}/event/${event.id}${acLinks}`;
   };
 
-  const {
-    data: events,
-    error,
-    isLoading,
-  } = useSWR<Event[]>("/api/events/trending", fetcher);
+  const handleArtistClick = (artist: HomeArtist) => {
+    window.location.href = `/${artist.slug}/artist/${artist.id}`;
+  };
 
   return (
     <MainContent>
-      <HeroSection>
-        <h2>Find Your Next Live Experience</h2>
-        <p>Discover thousands of live events playing near you</p>
-      </HeroSection>
+      <HomeHero />
 
-      <h3>Trending Events</h3>
-
-      {isLoading && <p>Loading trending events...</p>}
-      {error && <p>Oops! Something went wrong.</p>}
-
-      {events && (
+      <section aria-labelledby="trending-artists-title">
+        <SectionTitle id="trending-artists-title">
+          {t("homePage.trendingArtists")}
+        </SectionTitle>
         <EventsGrid>
-          {events.map((event) => (
-            <EventCard key={event.id} onClick={() => handleCardClick(event)}>
-              <EventImagePlaceholder />
-              <EventTitle>{event.title}</EventTitle>
-              <EventMeta>📅 {event.date}</EventMeta>
-              <EventMeta>📍 {event.venue}</EventMeta>
-              <EventPrice>From {event.price}</EventPrice>
-            </EventCard>
+          {FEATURED_ARTISTS.map((artist) => (
+            <ArtistShowcaseCard
+              key={artist.id}
+              artist={artist}
+              onSelect={handleArtistClick}
+            />
           ))}
         </EventsGrid>
-      )}
+      </section>
+
+      <section aria-labelledby="trending-events-title">
+        <SectionTitle id="trending-events-title">
+          {t("homePage.trendingEvents")}
+        </SectionTitle>
+
+        {isLoading ? (
+          <StatusMessage aria-live="polite">
+            {t("homePage.loadingTrending")}
+          </StatusMessage>
+        ) : null}
+        {error ? (
+          <StatusMessage aria-live="polite">
+            {t("homePage.loadingError")}
+          </StatusMessage>
+        ) : null}
+
+        {events ? (
+          <EventsGrid>
+            {events.map((event) => (
+              <TrendingEventCard
+                key={event.id}
+                event={event}
+                onSelect={handleEventClick}
+              />
+            ))}
+          </EventsGrid>
+        ) : null}
+      </section>
     </MainContent>
   );
 };

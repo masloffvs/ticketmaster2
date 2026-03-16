@@ -1,6 +1,7 @@
 import { defineConfig } from "@rspack/cli";
 import { type Compiler, rspack, type SwcLoaderOptions } from "@rspack/core";
 import { ReactRefreshRspackPlugin } from "@rspack/plugin-react-refresh";
+import path from "node:path";
 
 // Пользовательский плагин для инлайна критического CSS прямо в HTML
 class InlineCriticalCssPlugin {
@@ -90,11 +91,18 @@ export default defineConfig({
   devServer: {
     historyApiFallback: true,
   },
+  output: {
+    publicPath: "/weblayer/",
+  },
   entry: {
     critical: "./src/styles/critical.less",
     main: "./src/main.tsx",
   },
   resolve: {
+    alias: {
+      react: path.resolve(__dirname, "node_modules/react"),
+      "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+    },
     extensions: ["...", ".ts", ".tsx", ".jsx"],
   },
   module: {
@@ -146,6 +154,8 @@ export default defineConfig({
     isDev ? new ReactRefreshRspackPlugin() : null,
   ],
   optimization: {
+    sideEffects: true,
+    usedExports: true,
     minimizer: [
       new rspack.SwcJsMinimizerRspackPlugin(),
       new rspack.LightningCssMinimizerRspackPlugin({
