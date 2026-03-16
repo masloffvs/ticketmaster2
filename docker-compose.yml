@@ -65,6 +65,7 @@ services:
     depends_on:
       - server
       - transparency-proxy
+      - puppeteer-proxy
     ports:
       - "80:80"
       - "443:443"
@@ -74,6 +75,23 @@ services:
     volumes:
       - ./bins/weblayer:/var/www/weblayer:ro
       - ./nginx-http3/certs:/etc/nginx/certs:ro
+
+  # ── Puppeteer Proxy (headless Chrome rendering pool) ─────────────
+  puppeteer-proxy:
+    build:
+      context: puppeteer-proxy
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: "3100"
+      POOL_SIZE: "3"
+      PAGE_TIMEOUT: "30000"
+    expose:
+      - "3100"
+    deploy:
+      resources:
+        limits:
+          memory: 2g
 
   # ── Transparency Proxy (ticketmaster.com → localhost) ───────────
   transparency-proxy:

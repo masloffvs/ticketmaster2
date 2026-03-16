@@ -1,0 +1,12 @@
+{
+  "name": "puppeteer-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "puppeteer": "^24.0.0"
+  }
+}
