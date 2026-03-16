@@ -54,7 +54,41 @@ async function renderUrl(targetUrl, options = {}) {
     const waitUntil = options.waitUntil ?? WAIT_UNTIL;
     const timeout = options.timeout ?? PAGE_TIMEOUT;
 
-    await page.goto(targetUrl, { waitUntil, timeout });
+    // Some sites (e.g. TM with PerimeterX) trigger client-side redirects
+    // that destroy the execution context. We handle this with retries.
+    let lastError;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        if (attempt === 0) {
+          await page.goto(targetUrl, { waitUntil, timeout });
+        } else {
+          // After a redirect/navigation, just wait for the page to settle
+          await page.waitForNavigation({ waitUntil, timeout }).catch(() => {});
+          // Give extra time for JS frameworks to render
+          await new Promise((r) => setTimeout(r, 2000));
+        }
+        lastError = null;
+        break;
+      } catch (err) {
+        lastError = err;
+        const msg = err.message ?? "";
+        if (
+          msg.includes("Execution context was destroyed") ||
+          msg.includes("frame was detached") ||
+          msg.includes("navigation")
+        ) {
+          console.log(
+            `[puppeteer-proxy] navigation bounce attempt=${attempt + 1} url=${targetUrl}`,
+          );
+          continue;
+        }
+        throw err;
+      }
+    }
+    if (lastError) throw lastError;
+
+    // Wait a bit for any remaining async rendering
+    await new Promise((r) => setTimeout(r, 1000));
 
     // Optional: wait for a specific selector
     if (options.waitForSelector) {
