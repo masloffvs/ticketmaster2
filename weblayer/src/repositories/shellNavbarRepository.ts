@@ -18,6 +18,10 @@ const SHELL_NAVBAR_GROUPS: ShellNavGroup[] = [
     title: "Data",
     items: ["Event Inspector"],
   },
+  {
+    title: "Integrations",
+    items: ["Email"],
+  },
 ];
 
 export const shellNavbarRepository = {

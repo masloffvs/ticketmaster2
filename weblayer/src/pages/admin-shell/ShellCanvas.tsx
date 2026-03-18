@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { EmailWidget } from "./EmailWidget";
 import { EventInspectorWidget } from "./EventInspectorWidget";
 import { LoggerWidget } from "./LoggerWidget";
 import { ProxySegmentsWidget } from "./ProxySegmentsWidget";
@@ -60,6 +61,7 @@ export const ShellCanvas = ({ activeItem }: ShellCanvasProps) => {
           {activeItem === "Logger" && <LoggerWidget />}
           {activeItem === "Topology API" && <TopologyWidget />}
           {activeItem === "Event Inspector" && <EventInspectorWidget />}
+          {activeItem === "Email" && <EmailWidget />}
         </CanvasSurface>
       </Canvas>
     </CanvasWrap>

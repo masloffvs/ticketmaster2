@@ -34,8 +34,26 @@ export class Config {
     table: "app_logs",
   } as const;
 
+  readonly mail = {
+    provider: "resend",
+    apiKey: Bun.env.RESEND_API_KEY ?? "",
+    fromEmail: Bun.env.RESEND_FROM_EMAIL ?? "",
+    fromName: Bun.env.RESEND_FROM_NAME ?? "",
+    replyTo: this.parseList(Bun.env.RESEND_REPLY_TO),
+    testTo: Bun.env.RESEND_TEST_TO ?? "",
+  } as const;
+
   get dbConnectionString(): string {
     const { host, port, user, password, database } = this.db;
     return `postgres://${user}:${password}@${host}:${port}/${database}`;
+  }
+
+  private parseList(value?: string): string[] {
+    if (!value) return [];
+
+    return value
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
   }
 }

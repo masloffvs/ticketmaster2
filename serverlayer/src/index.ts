@@ -9,6 +9,7 @@ import {
   eventRoutes,
   healthRoutes,
   logsRoutes,
+  mailRoutes,
   topologyRoutes,
 } from "@/routes";
 import { cors } from "@elysiajs/cors";
@@ -63,6 +64,7 @@ const app = new Elysia()
   .use(artistRoutes)
   .use(topologyRoutes)
   .use(logsRoutes)
+  .use(mailRoutes)
   .listen(config.port);
 
 logger.info(
