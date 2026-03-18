@@ -78,16 +78,16 @@ const isDev = process.env.NODE_ENV === "development";
 
 // Target browsers, see: https://github.com/browserslist/browserslist
 const targets = [
-  "> 0.2%",
-  "last 2 versions",
-  "not dead",
-  "not IE 11",
-  "iOS >= 9",
-  "Android >= 4.4",
-  "Firefox ESR",
+  "last 1 Chrome major version",
+  "last 1 Edge major version",
+  "last 1 Firefox major version",
+  "last 1 Safari major version",
+  "iOS >= 16",
+  "Android >= 12",
 ];
 
 export default defineConfig({
+  mode: isDev ? "development" : "production",
   devServer: {
     historyApiFallback: true,
   },
@@ -156,12 +156,44 @@ export default defineConfig({
   optimization: {
     sideEffects: true,
     usedExports: true,
+    runtimeChunk: "single",
+    splitChunks: {
+      chunks: "all",
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "vendors",
+          chunks: "initial",
+          priority: 20,
+          enforce: true,
+        },
+        asyncVendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "async-vendors",
+          chunks: "async",
+          priority: 15,
+          reuseExistingChunk: true,
+        },
+        common: {
+          name: "common",
+          minChunks: 2,
+          chunks: "async",
+          priority: 10,
+          reuseExistingChunk: true,
+        },
+      },
+    },
     minimizer: [
       new rspack.SwcJsMinimizerRspackPlugin(),
       new rspack.LightningCssMinimizerRspackPlugin({
         minimizerOptions: { targets },
       }),
     ],
+  },
+  performance: {
+    hints: "warning",
+    maxAssetSize: 256 * 1024,
+    maxEntrypointSize: 288 * 1024,
   },
   experiments: {
     css: true,

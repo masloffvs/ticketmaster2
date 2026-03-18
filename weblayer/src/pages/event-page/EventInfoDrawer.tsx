@@ -33,6 +33,11 @@ const Drawer = styled.div`
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 640px) {
+    width: 100vw;
+    max-width: 100vw;
+  }
 `;
 
 const DrawerHeader = styled.div`
@@ -45,6 +50,10 @@ const DrawerHeader = styled.div`
   top: 0;
   background: var(--color-white);
   z-index: 1;
+
+  @media (max-width: 640px) {
+    padding: 0.9rem 1rem;
+  }
 `;
 
 const BackButton = styled.button`
@@ -71,6 +80,10 @@ const DrawerTitle = styled.h2`
 const DrawerBody = styled.div`
   padding: 1.25rem;
   flex: 1;
+
+  @media (max-width: 640px) {
+    padding: 1rem;
+  }
 `;
 
 const EventTitle = styled.h3`

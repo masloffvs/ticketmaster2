@@ -5,6 +5,7 @@ const HeaderWrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
+  overflow-x: clip;
 `;
 
 const UtilityBar = styled.div`
@@ -17,6 +18,14 @@ const UtilityBar = styled.div`
   color: var(--color-white);
   font-size: 0.9rem;
   gap: 2rem;
+
+  @media (max-width: 900px) {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    gap: 0.75rem 1rem;
+    justify-content: space-between;
+  }
 `;
 
 const CountrySelect = styled.button`
@@ -35,9 +44,15 @@ const CountrySelect = styled.button`
   &:hover {
     text-decoration: underline;
   }
+
+  @media (max-width: 900px) {
+    margin-right: 0;
+  }
 `;
 
 const UtilNav = styled.nav`
+  min-width: 0;
+
   ul {
     list-style: none;
     display: flex;
@@ -65,6 +80,20 @@ const UtilNav = styled.nav`
       text-decoration: underline;
     }
   }
+
+  @media (max-width: 900px) {
+    order: 3;
+    flex: 1 1 100%;
+
+    ul {
+      flex-wrap: wrap;
+      gap: 0.75rem 1rem;
+    }
+
+    a {
+      font-size: 0.82rem;
+    }
+  }
 `;
 
 const PayPalAd = styled.a`
@@ -82,6 +111,11 @@ const PayPalAd = styled.a`
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
+
+  @media (max-width: 900px) {
+    margin-right: -1rem;
+    padding: 0.35rem 0.75rem;
+  }
 `;
 
 const MainHeader = styled.header`
@@ -91,12 +125,26 @@ const MainHeader = styled.header`
   padding: 1rem 2rem;
   background-color: var(--color-header-blue); /* Основной синий TM */
   color: var(--color-white);
+
+  @media (max-width: 900px) {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
 `;
 
 const HeaderLeft = styled.div`
   display: flex;
   align-items: center;
   gap: 2rem;
+
+  @media (max-width: 900px) {
+    width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
 `;
 
 const Logo = styled.a`
@@ -123,12 +171,31 @@ const NavLinks = styled.nav`
       text-decoration: underline;
     }
   }
+
+  @media (max-width: 900px) {
+    width: 100%;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+    scrollbar-width: thin;
+
+    a {
+      flex: 0 0 auto;
+      white-space: nowrap;
+      font-size: 0.95rem;
+    }
+  }
 `;
 
 const HeaderRight = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+
+  @media (max-width: 900px) {
+    width: 100%;
+    justify-content: space-between;
+  }
 `;
 
 const LanguageToggle = styled.div`
@@ -165,6 +232,10 @@ const SignInOutButton = styled.a`
 
   &:hover {
     text-decoration: underline;
+  }
+
+  @media (max-width: 560px) {
+    font-size: 0.95rem;
   }
 `;
 

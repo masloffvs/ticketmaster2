@@ -16,6 +16,12 @@ const Bar = styled.div`
   &:hover {
     background: #037743;
   }
+
+  @media (max-width: 640px) {
+    padding: 0.7rem 1rem;
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
 `;
 
 const MoreLink = styled.span`

@@ -6,7 +6,17 @@ export interface ShellNavGroup {
 const SHELL_NAVBAR_GROUPS: ShellNavGroup[] = [
   {
     title: "Network",
-    items: ["Proxy Traffic", "Recent Requests"],
+    items: [
+      "Proxy Traffic",
+      "Recent Requests",
+      "Proxy Segments",
+      "Logger",
+      "Topology API",
+    ],
+  },
+  {
+    title: "Data",
+    items: ["Event Inspector"],
   },
 ];
 

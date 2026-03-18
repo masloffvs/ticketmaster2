@@ -70,6 +70,7 @@ function App() {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path=":artistSlug/artist/:artistId" element={<ArtistPage />} />
+          <Route path="event/:eventId" element={<EventPage />} />
           <Route path=":eventSlug/event/:eventId" element={<EventPage />} />
           <Route path="event/:eventSlug/:eventId" element={<EventPage />} />
         </Route>

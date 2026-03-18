@@ -10,6 +10,12 @@ const HeaderWrapper = styled.header`
   align-items: flex-start;
   gap: 1rem;
   position: relative;
+
+  @media (max-width: 720px) {
+    flex-wrap: wrap;
+    padding: 1rem;
+    gap: 0.75rem;
+  }
 `;
 
 const Thumbnail = styled.img`
@@ -18,6 +24,11 @@ const Thumbnail = styled.img`
   border-radius: 4px;
   object-fit: cover;
   flex-shrink: 0;
+
+  @media (max-width: 720px) {
+    width: 48px;
+    height: 48px;
+  }
 `;
 
 const HeaderContent = styled.div`
@@ -29,6 +40,7 @@ const Breadcrumbs = styled.nav`
   font-size: 0.8rem;
   color: #b0b0b0;
   margin-bottom: 0.35rem;
+  overflow-wrap: anywhere;
 
   a {
     color: inherit;
@@ -41,6 +53,11 @@ const Breadcrumbs = styled.nav`
   span {
     margin: 0 0.35rem;
   }
+
+  @media (max-width: 560px) {
+    font-size: 0.74rem;
+    line-height: 1.5;
+  }
 `;
 
 const TitleRow = styled.div`
@@ -49,6 +66,10 @@ const TitleRow = styled.div`
   gap: 0.75rem;
   flex-wrap: wrap;
   margin-bottom: 0.25rem;
+
+  @media (max-width: 560px) {
+    gap: 0.5rem;
+  }
 `;
 
 const Title = styled.h1`
@@ -56,6 +77,10 @@ const Title = styled.h1`
   font-weight: 700;
   margin: 0;
   letter-spacing: 0.02em;
+
+  @media (max-width: 560px) {
+    font-size: 1rem;
+  }
 `;
 
 const PillButton = styled.button`
@@ -83,6 +108,11 @@ const PillButton = styled.button`
     height: 14px;
     fill: currentColor;
   }
+
+  @media (max-width: 560px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 const MetaRow = styled.div`
@@ -92,12 +122,14 @@ const MetaRow = styled.div`
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  line-height: 1.5;
 `;
 
 const VenueLink = styled.a`
   color: var(--color-primary);
   text-decoration: underline;
   font-weight: 500;
+  overflow-wrap: anywhere;
 `;
 
 const AgeBadge = styled.span`
@@ -110,6 +142,13 @@ const HeaderRight = styled.div`
   gap: 1rem;
   flex-shrink: 0;
   align-self: center;
+
+  @media (max-width: 720px) {
+    width: 100%;
+    order: -1;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
 `;
 
 const LangButton = styled.button`
@@ -128,6 +167,11 @@ const LangButton = styled.button`
 
   &:hover {
     background: rgba(255, 255, 255, 0.08);
+  }
+
+  @media (max-width: 560px) {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.5rem;
   }
 `;
 
@@ -184,7 +228,7 @@ export const EventHeader = ({ event, onMoreInfo }: EventHeaderProps) => {
 
         <MetaRow>
           <span>{dateStr}</span>
-          <VenueLink to={`/venue/${event.venueSlug}`}>
+          <VenueLink href={`/venue/${event.venueSlug}`}>
             {event.venue}, {event.city}
           </VenueLink>
           <AgeBadge>

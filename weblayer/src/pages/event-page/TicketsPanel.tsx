@@ -1,528 +1,599 @@
+import { useState } from "react";
 import styled from "styled-components";
-import { useI18n } from "../../i18n/I18nProvider";
-import type { EventData, TicketType } from "../../store/useEventStore";
-import { useEventStore } from "../../store/useEventStore";
+import type { EventData } from "../../store/useEventStore";
 import { useTmDataStore } from "../../store/useTmDataStore";
 
-const Panel = styled.aside`
+/* ── Layout ──────────────────────────────────────────────────── */
+
+const Panel = styled.div`
   width: 100%;
   height: 100%;
-  background: var(--color-white);
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #e0e0e0;
+  background: #fff;
   overflow-y: auto;
 `;
 
-const PanelHeader = styled.div`
+/* ── Quantity + Filters row ──────────────────────────────────── */
+
+const TopControls = styled.div`
+  padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1.25rem;
+  gap: 0.5rem;
   border-bottom: 1px solid #e0e0e0;
 
-  svg {
-    width: 20px;
-    height: 20px;
-    fill: var(--color-black);
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
   }
 `;
 
-const PanelTitle = styled.h2`
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const ExpandArrow = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem;
-  display: flex;
-
-  svg {
-    width: 20px;
-    height: 20px;
-    fill: #555;
-  }
-`;
-
-const SearchHeader = styled.div`
-  padding: 1.25rem;
-  text-align: center;
-
-  h3 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin: 0 0 0.75rem;
-  }
-`;
-
-const FilterRow = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
-`;
-
-const FilterPill = styled.button`
-  background: transparent;
-  border: 1px solid #d0d0d0;
-  border-radius: 999px;
-  padding: 0.35rem 1rem;
-  font-size: 0.8rem;
+const QuantitySelect = styled.select`
+  padding: 0.45rem 2rem 0.45rem 0.65rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.85rem;
   font-family: inherit;
+  font-weight: 600;
+  background: #fff;
   cursor: pointer;
-  color: #555;
+  appearance: auto;
+  flex: 1;
+  min-width: 0;
+`;
+
+const FiltersBtn = styled.button`
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 4px;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
 
   svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     fill: currentColor;
   }
 
   &:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+    background: #f5f5f5;
   }
 `;
 
-const TicketSection = styled.div`
-  padding: 1rem 1.25rem;
-`;
+/* ── Price range slider ──────────────────────────────────────── */
 
-const TicketRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 0;
-`;
-
-const TicketInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-`;
-
-const TicketDot = styled.span`
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  flex-shrink: 0;
-`;
-
-const TicketLabel = styled.div`
-  font-weight: 700;
-  font-size: 0.95rem;
-`;
-
-const TicketPrice = styled.div`
-  font-size: 0.85rem;
-  color: #555;
-`;
-
-const QuantityControl = styled.div`
+const PriceRangeRow = styled.div`
+  padding: 0.5rem 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-`;
-
-const QtyButton = styled.button<{ $variant?: "add" | "remove" }>`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid
-    ${(p) => (p.$variant === "add" ? "var(--color-primary)" : "#d0d0d0")};
-  background: ${(p) =>
-    p.$variant === "add" ? "var(--color-primary)" : "transparent"};
-  color: ${(p) => (p.$variant === "add" ? "var(--color-white)" : "#d0d0d0")};
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: inherit;
-
-  &:hover:not(:disabled) {
-    opacity: 0.85;
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-`;
-
-const QtyValue = styled.span`
-  font-size: 1rem;
-  font-weight: 600;
-  min-width: 1.5rem;
-  text-align: center;
-`;
-
-const FeeNote = styled.div`
-  font-size: 0.8rem;
-  color: #949494;
-  padding: 0.25rem 1.25rem;
   border-bottom: 1px solid #e0e0e0;
-`;
 
-const AdminFeeNote = styled.div`
-  font-size: 0.8rem;
-  color: var(--color-primary);
-  padding: 0.5rem 1.25rem;
-  border-bottom: 1px solid #e0e0e0;
-`;
-
-const SummaryRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1.25rem;
-
-  svg {
-    width: 18px;
-    height: 18px;
-    fill: #555;
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
   }
 `;
 
-const SummaryLeft = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: #555;
-`;
-
-const LimitBadge = styled.span`
-  font-size: 0.8rem;
-  color: #949494;
-`;
-
-const FindButton = styled.button`
-  display: block;
-  width: calc(100% - 2.5rem);
-  margin: 0 1.25rem 1rem;
-  padding: 0.85rem;
-  background: #048851;
-  color: var(--color-white);
-  border: none;
+const PriceInput = styled.input`
+  width: 52px;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.8rem;
   font-family: inherit;
+  text-align: center;
+  font-weight: 600;
+
+  @media (max-width: 640px) {
+    width: 64px;
+  }
+`;
+
+const PriceSlider = styled.input`
+  flex: 1;
+  height: 4px;
+  appearance: none;
+  background: #e0e0e0;
+  border-radius: 2px;
+  outline: none;
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #026cdf;
+    cursor: pointer;
+  }
+
+  @media (max-width: 640px) {
+    min-width: 100%;
+    order: 3;
+  }
+`;
+
+/* ── Tabs (LOWEST PRICE / BEST SEATS) ────────────────────────── */
+
+const TabRow = styled.div`
+  display: flex;
+  border-bottom: 2px solid #e0e0e0;
+`;
+
+const Tab = styled.button<{ $active: boolean }>`
+  flex: 1;
+  padding: 0.65rem 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border: none;
+  background: transparent;
   cursor: pointer;
+  font-family: inherit;
+  color: ${(p) => (p.$active ? "#333" : "#999")};
+  border-bottom: 2px solid ${(p) => (p.$active ? "#333" : "transparent")};
+  margin-bottom: -2px;
 
   &:hover {
-    background: #037743;
+    color: #333;
   }
 
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-  }
-`;
-
-const ResaleSection = styled.div`
-  padding: 1rem 1.25rem;
-  border-top: 3px solid #c4007a;
-`;
-
-const ResaleTitle = styled.h3`
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin: 0 0 0.25rem;
-`;
-
-const ResaleSubtitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-
-  svg {
-    width: 18px;
-    height: 18px;
+  @media (max-width: 520px) {
+    font-size: 0.68rem;
+    padding: 0.7rem 0.35rem;
   }
 `;
 
-const ResaleNote = styled.p`
-  font-size: 0.8rem;
+/* ── All-in disclaimer ───────────────────────────────────────── */
+
+const AllInRow = styled.div`
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
   color: #555;
-  margin: 0;
+  border-bottom: 1px solid #e0e0e0;
   line-height: 1.5;
-`;
 
-const EmptyState = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #949494;
-  padding: 2rem;
-  text-align: center;
-  gap: 0.5rem;
-
-  svg {
-    width: 48px;
-    height: 48px;
-    fill: #555;
+  a {
+    color: #026cdf;
+    text-decoration: underline;
+    cursor: pointer;
   }
 `;
 
-const ManifestSectionBlock = styled.div`
-  border-top: 1px solid #e0e0e0;
-  padding: 0.75rem 1.25rem;
+/* ── PayPal banner ───────────────────────────────────────────── */
+
+const PayPalRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
+
+  @media (max-width: 520px) {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
 `;
 
-const ManifestSectionTitle = styled.div`
+const PayPalLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.85rem;
   font-weight: 700;
   color: #333;
-  margin-bottom: 0.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  min-width: 0;
+  flex-wrap: wrap;
 `;
 
-const ManifestBadge = styled.span`
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--color-primary);
-  background: rgba(2, 77, 223, 0.08);
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
+const PayPalLogo = styled.span`
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #003087;
+  font-style: italic;
 `;
 
-const ManifestPriceRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.25rem 0;
-  font-size: 0.82rem;
-  color: #555;
-`;
-
-const ManifestLabel = styled.div`
-  font-size: 0.8rem;
-  font-weight: 700;
+const MoreInfoLink = styled.button`
+  background: none;
+  border: none;
   color: #026cdf;
-  padding: 0.75rem 1.25rem 0.25rem;
-  border-top: 2px solid #026cdf;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
-const ManifestLoading = styled.div`
-  padding: 1rem 1.25rem;
-  font-size: 0.8rem;
-  color: #949494;
-  text-align: center;
+/* ── Ticket list items ───────────────────────────────────────── */
+
+const TicketListWrap = styled.div`
+  flex: 1;
 `;
+
+const TicketItemBtn = styled.button`
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  gap: 0.75rem;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f5f8ff;
+  }
+
+  @media (max-width: 520px) {
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: flex-start;
+  }
+`;
+
+const SeatViewThumb = styled.div`
+  grid-column: 1;
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  background: #e8e8e8;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 28px;
+    height: 28px;
+    fill: #999;
+  }
+
+  @media (max-width: 520px) {
+    grid-row: 1 / span 2;
+  }
+`;
+
+const TicketInfoWrap = styled.div`
+  grid-column: 2;
+  flex: 1;
+  min-width: 0;
+`;
+
+const TicketSectionLabel = styled.div`
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #333;
+  overflow-wrap: anywhere;
+`;
+
+const TicketTypeLabel = styled.div`
+  font-size: 0.78rem;
+  color: #777;
+  overflow-wrap: anywhere;
+`;
+
+const TicketPriceLabel = styled.div`
+  grid-column: 3;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #333;
+  white-space: nowrap;
+  justify-self: end;
+
+  @media (max-width: 520px) {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    margin-top: -0.15rem;
+  }
+`;
+
+/* ── Mock ticket data ────────────────────────────────────────── */
+
+const MOCK_TICKETS = [
+  {
+    id: "1",
+    section: "MEZL",
+    row: "H",
+    type: "Standard Admission",
+    price: 61.04,
+  },
+  {
+    id: "2",
+    section: "MEZL",
+    row: "J",
+    type: "Standard Admission",
+    price: 61.04,
+  },
+  {
+    id: "3",
+    section: "MEZR",
+    row: "H",
+    type: "Standard Admission",
+    price: 61.04,
+  },
+  {
+    id: "4",
+    section: "MEZR",
+    row: "J",
+    type: "Standard Admission",
+    price: 61.04,
+  },
+  {
+    id: "5",
+    section: "MEZR",
+    row: "E",
+    type: "Standard Admission",
+    price: 77.98,
+  },
+  {
+    id: "6",
+    section: "MEZR",
+    row: "F",
+    type: "Standard Admission",
+    price: 77.98,
+  },
+  {
+    id: "7",
+    section: "MEZR",
+    row: "G",
+    type: "Standard Admission",
+    price: 77.98,
+  },
+  {
+    id: "8",
+    section: "MEZL",
+    row: "E",
+    type: "Standard Admission",
+    price: 77.98,
+  },
+  {
+    id: "9",
+    section: "MEZL",
+    row: "F",
+    type: "Standard Admission",
+    price: 77.98,
+  },
+  {
+    id: "10",
+    section: "MEZL",
+    row: "G",
+    type: "Standard Admission",
+    price: 77.98,
+  },
+  {
+    id: "11",
+    section: "MEZC",
+    row: "G",
+    type: "Standard Admission",
+    price: 77.98,
+  },
+  {
+    id: "12",
+    section: "MEZC",
+    row: "H",
+    type: "Standard Admission",
+    price: 77.98,
+  },
+  {
+    id: "13",
+    section: "ORCHC",
+    row: "Q",
+    type: "Standard Admission",
+    price: 90.51,
+  },
+  {
+    id: "14",
+    section: "ORCHC",
+    row: "R",
+    type: "Standard Admission",
+    price: 90.51,
+  },
+  {
+    id: "15",
+    section: "ORCHC",
+    row: "S",
+    type: "Standard Admission",
+    price: 90.51,
+  },
+  {
+    id: "16",
+    section: "ORCHR",
+    row: "Q",
+    type: "Standard Admission",
+    price: 90.51,
+  },
+  {
+    id: "17",
+    section: "ORCHR",
+    row: "R",
+    type: "Standard Admission",
+    price: 90.51,
+  },
+  {
+    id: "18",
+    section: "ORCHR",
+    row: "S",
+    type: "Standard Admission",
+    price: 90.51,
+  },
+  {
+    id: "19",
+    section: "ORCHL",
+    row: "Q",
+    type: "Standard Admission",
+    price: 90.51,
+  },
+  {
+    id: "20",
+    section: "ORCHL",
+    row: "R",
+    type: "Standard Admission",
+    price: 90.51,
+  },
+];
+
+/* ── Component ──────────────────────────────────────────────── */
 
 interface TicketsPanelProps {
   event: EventData;
   viewMode: "seatmap" | "bestAvailable";
 }
 
-const TicketItem = ({ ticket }: { ticket: TicketType }) => {
-  const { selectedTickets, setTicketQuantity } = useEventStore();
-  const qty = selectedTickets[ticket.id] || 0;
-
-  return (
-    <TicketRow>
-      <TicketInfo>
-        <TicketDot />
-        <div>
-          <TicketLabel>{ticket.label}</TicketLabel>
-          <TicketPrice>
-            {ticket.price.toLocaleString("sv-SE")}, {String(0).padStart(2, "0")}{" "}
-            {ticket.currency} per biljett
-          </TicketPrice>
-        </div>
-      </TicketInfo>
-      <QuantityControl>
-        <QtyButton
-          $variant="remove"
-          type="button"
-          disabled={qty <= 0}
-          onClick={() => setTicketQuantity(ticket.id, qty - 1)}
-          aria-label="Decrease quantity"
-        >
-          −
-        </QtyButton>
-        <QtyValue>{qty}</QtyValue>
-        <QtyButton
-          $variant="add"
-          type="button"
-          onClick={() => setTicketQuantity(ticket.id, qty + 1)}
-          aria-label="Increase quantity"
-        >
-          +
-        </QtyButton>
-      </QuantityControl>
-    </TicketRow>
-  );
-};
-
-export const TicketsPanel = ({ event, viewMode }: TicketsPanelProps) => {
-  const { t } = useI18n();
-  const totalTickets = useEventStore((s) => s.totalTickets());
+export const TicketsPanel = (_props: TicketsPanelProps) => {
+  const [quantity, setQuantity] = useState(2);
+  const [activeTab, setActiveTab] = useState<"lowest" | "best">("lowest");
+  const [maxPrice, setMaxPrice] = useState(243);
   const { manifest, manifestLoading } = useTmDataStore();
 
-  const manifestSection = manifest && manifest.sections.length > 0 && (
-    <>
-      <ManifestLabel>
-        <svg
-          viewBox="0 0 24 24"
-          width="16"
-          height="16"
-          fill="#026cdf"
-          aria-hidden="true"
-        >
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-        </svg>
-        LIVE MANIFEST ({manifest.sections.length} sections)
-      </ManifestLabel>
-      {manifest.sections.map((section) => (
-        <ManifestSectionBlock key={section.id}>
-          <ManifestSectionTitle>
-            {section.name || section.id}
-            {section.availableCount != null && (
-              <ManifestBadge>{section.availableCount} available</ManifestBadge>
-            )}
-          </ManifestSectionTitle>
-          {section.priceLevels.map((pl) => (
-            <ManifestPriceRow key={pl.id}>
-              <span>{pl.name || `Level ${pl.id}`}</span>
-              <span>
-                {pl.total.toLocaleString("sv-SE")} {pl.currency}
-                {pl.fees > 0 && (
-                  <span style={{ color: "#949494", fontSize: "0.75rem" }}>
-                    {" "}
-                    (ink. {pl.fees.toLocaleString("sv-SE")} avgift)
-                  </span>
-                )}
-              </span>
-            </ManifestPriceRow>
-          ))}
-        </ManifestSectionBlock>
-      ))}
-    </>
+  const minPrice = 65;
+
+  // Build ticket list from manifest sections if available, else mock
+  const tickets = manifest?.sections?.length
+    ? manifest.sections.flatMap((sec) =>
+        sec.priceLevels.map((pl, i) => ({
+          id: `${sec.id}-${pl.id}`,
+          section: sec.name || sec.id,
+          row: String.fromCharCode(65 + i),
+          type: pl.name || "Standard Admission",
+          price: pl.total,
+        })),
+      )
+    : MOCK_TICKETS;
+
+  const sortedTickets =
+    activeTab === "lowest"
+      ? [...tickets].sort((a, b) => a.price - b.price)
+      : [...tickets].sort((a, b) => b.price - a.price);
+
+  const filteredTickets = sortedTickets.filter(
+    (t) => t.price >= minPrice && t.price <= maxPrice,
   );
 
   return (
     <Panel>
-      <PanelHeader>
-        <PanelTitle>
+      {/* Quantity + Filters */}
+      <TopControls>
+        <QuantitySelect
+          value={quantity}
+          onChange={(e) => setQuantity(Number(e.target.value))}
+          aria-label="Ticket quantity"
+        >
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+            <option key={n} value={n}>
+              {n} {n === 1 ? "Ticket" : "Tickets"}
+            </option>
+          ))}
+        </QuantitySelect>
+        <FiltersBtn type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z" />
+            <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z" />
           </svg>
-          {t("eventPage.tickets")}
-        </PanelTitle>
-        <ExpandArrow type="button" aria-label="Expand">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
-          </svg>
-        </ExpandArrow>
-      </PanelHeader>
+          Filters
+        </FiltersBtn>
+      </TopControls>
 
-      {viewMode === "bestAvailable" ? (
-        <>
-          <SearchHeader>
-            <h3>{t("eventPage.searchTickets")}</h3>
-            <FilterRow>
-              <FilterPill type="button">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z" />
-                </svg>
-              </FilterPill>
-              <FilterPill type="button">{t("eventPage.allPrices")}</FilterPill>
-              <FilterPill type="button">
-                {t("eventPage.allSections")}
-              </FilterPill>
-            </FilterRow>
-          </SearchHeader>
+      {/* Price slider */}
+      <PriceRangeRow>
+        <PriceInput
+          value={`$${minPrice}`}
+          readOnly
+          aria-label="Minimum price"
+        />
+        <PriceSlider
+          type="range"
+          min={65}
+          max={243}
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(Number(e.target.value))}
+          aria-label="Maximum ticket price"
+        />
+        <PriceInput
+          value={`$${maxPrice}+`}
+          readOnly
+          aria-label="Maximum price"
+        />
+      </PriceRangeRow>
 
-          <TicketSection>
-            {event.tickets.map((ticket) => (
-              <TicketItem key={ticket.id} ticket={ticket} />
-            ))}
-          </TicketSection>
+      {/* Tabs */}
+      <TabRow>
+        <Tab
+          $active={activeTab === "lowest"}
+          onClick={() => setActiveTab("lowest")}
+          type="button"
+        >
+          LOWEST PRICE
+        </Tab>
+        <Tab
+          $active={activeTab === "best"}
+          onClick={() => setActiveTab("best")}
+          type="button"
+        >
+          BEST SEATS
+        </Tab>
+      </TabRow>
 
-          <FeeNote>
-            {t("eventPage.priceIncludes")} {event.serviceFee},
-            {String(0).padStart(2, "0")} {event.currency}{" "}
-            {t("eventPage.inServiceFees")}
-          </FeeNote>
-          <AdminFeeNote>{t("eventPage.adminFeeNote")}</AdminFeeNote>
+      {/* All-in note */}
+      <AllInRow>
+        We&apos;re <strong>All In</strong>:{" "}
+        <a href="/pricing-info">Prices include fees</a> (before taxes).
+      </AllInRow>
 
-          <SummaryRow>
-            <SummaryLeft>
+      {/* PayPal */}
+      <PayPalRow>
+        <PayPalLeft>
+          <PayPalLogo>PayPal</PayPalLogo>
+          Buy Now, Pay Later
+        </PayPalLeft>
+        <MoreInfoLink type="button">More Info</MoreInfoLink>
+      </PayPalRow>
+
+      {/* Ticket list */}
+      <TicketListWrap role="list" aria-label="Available tickets">
+        {manifestLoading && (
+          <div
+            style={{
+              padding: "1rem",
+              textAlign: "center",
+              color: "#999",
+              fontSize: "0.85rem",
+            }}
+          >
+            Loading availability…
+          </div>
+        )}
+        {filteredTickets.map((ticket) => (
+          <TicketItemBtn key={ticket.id} role="listitem" type="button">
+            <SeatViewThumb>
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z" />
+                <path d="M4 18h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2zm0-10h16v8H4V8z" />
               </svg>
-              ×{totalTickets}
-            </SummaryLeft>
-            <LimitBadge>
-              {t("eventPage.ticketLimit")}: {event.ticketLimit}
-            </LimitBadge>
-          </SummaryRow>
-
-          <FindButton type="button">{t("eventPage.findTickets")}</FindButton>
-
-          {event.hasResale && (
-            <ResaleSection>
-              <ResaleTitle>{t("eventPage.moreOptions")}</ResaleTitle>
-              <ResaleSubtitle>
-                <svg viewBox="0 0 24 24" fill="#c4007a" aria-hidden="true">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                </svg>
-                {t("eventPage.verifiedResale")}
-              </ResaleSubtitle>
-              <ResaleNote>{t("eventPage.resaleNote")}</ResaleNote>
-            </ResaleSection>
-          )}
-
-          {manifestLoading && (
-            <ManifestLoading>Loading availability…</ManifestLoading>
-          )}
-          {manifestSection}
-        </>
-      ) : (
-        <>
-          <PanelHeader>
-            <FilterRow>
-              <FilterPill type="button">{t("eventPage.allOptions")}</FilterPill>
-            </FilterRow>
-          </PanelHeader>
-          <EmptyState>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M15 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V9l-6-6zM5 19V5h9v5h5v9H5z" />
-            </svg>
-            <div>{t("eventPage.selectSeats")}</div>
-            <div style={{ fontSize: "0.8rem" }}>
-              {t("eventPage.seatsAddedHere")}
-            </div>
-          </EmptyState>
-          {manifestLoading && (
-            <ManifestLoading>Loading availability…</ManifestLoading>
-          )}
-          {manifestSection}
-        </>
-      )}
+            </SeatViewThumb>
+            <TicketInfoWrap>
+              <TicketSectionLabel>
+                Sec {ticket.section} &bull; Row {ticket.row}
+              </TicketSectionLabel>
+              <TicketTypeLabel>{ticket.type}</TicketTypeLabel>
+            </TicketInfoWrap>
+            <TicketPriceLabel>${ticket.price.toFixed(2)}</TicketPriceLabel>
+          </TicketItemBtn>
+        ))}
+      </TicketListWrap>
     </Panel>
   );
 };

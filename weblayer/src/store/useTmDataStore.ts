@@ -46,13 +46,25 @@ export interface GeometryData {
 interface TmDataState {
   manifest: ManifestData | null;
   geometry: GeometryData | null;
+  topology: unknown | null;
+  facets: unknown | null;
+  quickpicks: unknown | null;
   manifestLoading: boolean;
   geometryLoading: boolean;
+  topologyLoading: boolean;
+  facetsLoading: boolean;
+  quickpicksLoading: boolean;
   manifestError: string | null;
   geometryError: string | null;
+  topologyError: string | null;
+  facetsError: string | null;
+  quickpicksError: string | null;
 
   fetchManifest: (eventId: string) => Promise<void>;
   fetchGeometry: (eventId: string) => Promise<void>;
+  fetchTopology: (eventId: string) => Promise<void>;
+  fetchFacets: (eventId: string) => Promise<void>;
+  fetchQuickpicks: (eventId: string) => Promise<void>;
   fetchAll: (eventId: string) => Promise<void>;
   reset: () => void;
 }
@@ -153,10 +165,19 @@ function parseGeometry(eventId: string, raw: unknown): GeometryData {
 export const useTmDataStore = create<TmDataState>((set) => ({
   manifest: null,
   geometry: null,
+  topology: null,
+  facets: null,
+  quickpicks: null,
   manifestLoading: false,
   geometryLoading: false,
+  topologyLoading: false,
+  facetsLoading: false,
+  quickpicksLoading: false,
   manifestError: null,
   geometryError: null,
+  topologyError: null,
+  facetsError: null,
+  quickpicksError: null,
 
   fetchManifest: async (eventId) => {
     set({ manifestLoading: true, manifestError: null });
@@ -194,11 +215,64 @@ export const useTmDataStore = create<TmDataState>((set) => ({
     }
   },
 
+  fetchTopology: async (eventId) => {
+    set({ topologyLoading: true, topologyError: null });
+    try {
+      const res = await fetch(`/api/topology/${encodeURIComponent(eventId)}`);
+      if (!res.ok) throw new Error(`Topology HTTP ${res.status}`);
+      const json = await res.json();
+      set({ topology: json, topologyLoading: false });
+    } catch (err) {
+      set({
+        topologyError:
+          err instanceof Error ? err.message : "Failed to fetch topology",
+        topologyLoading: false,
+      });
+    }
+  },
+
+  fetchFacets: async (eventId) => {
+    set({ facetsLoading: true, facetsError: null });
+    try {
+      const res = await fetch(`/api/tm/facets/${encodeURIComponent(eventId)}`);
+      if (!res.ok) throw new Error(`Facets HTTP ${res.status}`);
+      const json = await res.json();
+      set({ facets: json, facetsLoading: false });
+    } catch (err) {
+      set({
+        facetsError:
+          err instanceof Error ? err.message : "Failed to fetch facets",
+        facetsLoading: false,
+      });
+    }
+  },
+
+  fetchQuickpicks: async (eventId) => {
+    set({ quickpicksLoading: true, quickpicksError: null });
+    try {
+      const res = await fetch(
+        `/api/tm/quickpicks/${encodeURIComponent(eventId)}`,
+      );
+      if (!res.ok) throw new Error(`Quickpicks HTTP ${res.status}`);
+      const json = await res.json();
+      set({ quickpicks: json, quickpicksLoading: false });
+    } catch (err) {
+      set({
+        quickpicksError:
+          err instanceof Error ? err.message : "Failed to fetch quickpicks",
+        quickpicksLoading: false,
+      });
+    }
+  },
+
   fetchAll: async (eventId) => {
     const store = useTmDataStore.getState();
     await Promise.allSettled([
       store.fetchManifest(eventId),
       store.fetchGeometry(eventId),
+      store.fetchTopology(eventId),
+      store.fetchFacets(eventId),
+      store.fetchQuickpicks(eventId),
     ]);
   },
 
@@ -206,9 +280,18 @@ export const useTmDataStore = create<TmDataState>((set) => ({
     set({
       manifest: null,
       geometry: null,
+      topology: null,
+      facets: null,
+      quickpicks: null,
       manifestLoading: false,
       geometryLoading: false,
+      topologyLoading: false,
+      facetsLoading: false,
+      quickpicksLoading: false,
       manifestError: null,
       geometryError: null,
+      topologyError: null,
+      facetsError: null,
+      quickpicksError: null,
     }),
 }));

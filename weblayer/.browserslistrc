@@ -1,7 +1,6 @@
-> 0.2%
-last 2 versions
-not dead
-not IE 11
-iOS >= 9
-Android >= 4.4
-Firefox ESR
+last 1 Chrome major version
+last 1 Edge major version
+last 1 Firefox major version
+last 1 Safari major version
+iOS >= 16
+Android >= 12

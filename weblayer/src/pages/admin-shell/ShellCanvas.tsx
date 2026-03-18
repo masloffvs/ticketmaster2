@@ -1,6 +1,10 @@
 import styled from "styled-components";
+import { EventInspectorWidget } from "./EventInspectorWidget";
+import { LoggerWidget } from "./LoggerWidget";
+import { ProxySegmentsWidget } from "./ProxySegmentsWidget";
 import { ProxyTrafficWidget } from "./ProxyTrafficWidget";
 import { RecentRequestsWidget } from "./RecentRequestsWidget";
+import { TopologyWidget } from "./TopologyWidget";
 
 const CanvasWrap = styled.main`
   min-height: calc(100vh - 52px);
@@ -52,6 +56,10 @@ export const ShellCanvas = ({ activeItem }: ShellCanvasProps) => {
         <CanvasSurface aria-label="Shell workspace canvas">
           {activeItem === "Proxy Traffic" && <ProxyTrafficWidget />}
           {activeItem === "Recent Requests" && <RecentRequestsWidget />}
+          {activeItem === "Proxy Segments" && <ProxySegmentsWidget />}
+          {activeItem === "Logger" && <LoggerWidget />}
+          {activeItem === "Topology API" && <TopologyWidget />}
+          {activeItem === "Event Inspector" && <EventInspectorWidget />}
         </CanvasSurface>
       </Canvas>
     </CanvasWrap>
