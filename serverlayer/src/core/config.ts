@@ -20,6 +20,20 @@ export class Config {
     apiVersion: Bun.env.TM_API_VERSION ?? "v2",
   } as const;
 
+  readonly redisUrl = Bun.env.REDIS_URL ?? "redis://localhost:6379";
+
+  readonly mongoUrl =
+    Bun.env.MONGO_URL ?? "mongodb://mongo:mongo@localhost:27017";
+  readonly mongoDb = Bun.env.MONGO_DB ?? "ticketmaster";
+
+  readonly clickhouse = {
+    url: Bun.env.CLICKHOUSE_URL ?? "http://localhost:8123",
+    database: Bun.env.CLICKHOUSE_DB ?? "logs",
+    user: Bun.env.CLICKHOUSE_USER ?? "default",
+    password: Bun.env.CLICKHOUSE_PASSWORD ?? "",
+    table: "app_logs",
+  } as const;
+
   get dbConnectionString(): string {
     const { host, port, user, password, database } = this.db;
     return `postgres://${user}:${password}@${host}:${port}/${database}`;

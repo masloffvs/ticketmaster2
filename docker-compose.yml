@@ -15,6 +15,58 @@ services:
       timeout: 3s
       retries: 5
 
+  # ── Redis (topology / caching) ─────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    expose:
+      - "6379"
+
+  # ── MongoDB (topology storage) ─────────────────────────────────
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    expose:
+      - "27017"
+
+  # ── ClickHouse (centralized logging) ───────────────────────────
+  clickhouse:
+    image: clickhouse/clickhouse-server:24-alpine
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: clickhouse
+      CLICKHOUSE_DB: logs
+    volumes:
+      - chdata:/var/lib/clickhouse
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "clickhouse-client --user default --password clickhouse --query 'SELECT 1'",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    expose:
+      - "8123"
+
   # ── Serverlayer (x86_64 binary) ─────────────────────────────────
   server:
     build:
@@ -23,6 +75,12 @@ services:
     restart: unless-stopped
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      clickhouse:
         condition: service_healthy
     environment:
       NODE_ENV: "production"
@@ -33,6 +91,13 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: ticketmaster
+      REDIS_URL: "redis://redis:6379"
+      MONGO_URL: "mongodb://mongo:mongo@mongo:27017"
+      MONGO_DB: "ticketmaster"
+      CLICKHOUSE_URL: "http://clickhouse:8123"
+      CLICKHOUSE_DB: "logs"
+      CLICKHOUSE_USER: "default"
+      CLICKHOUSE_PASSWORD: "clickhouse"
       TM_CONSUMER_KEY: "JVGgt7XEa7zZGzpZ4OtgoA4j5vWQywQ1"
       TM_CONSUMER_SECRET: "r8Li8UGl6k0ZHLNy"
       TM_BASE_URL: "https://app.ticketmaster.com"
@@ -49,12 +114,30 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
     environment:
+      NODE_ENV: "production"
+      PORT: "3001"
+      HOST: "0.0.0.0"
       DB_HOST: postgres
       DB_PORT: "5432"
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: ticketmaster
+      REDIS_URL: "redis://redis:6379"
+      MONGO_URL: "mongodb://mongo:mongo@mongo:27017"
+      MONGO_DB: "ticketmaster"
+      CLICKHOUSE_URL: "http://clickhouse:8123"
+      CLICKHOUSE_DB: "logs"
+      CLICKHOUSE_USER: "default"
+      CLICKHOUSE_PASSWORD: "clickhouse"
+    expose:
+      - "3001"
 
   # ── OpenResty (nginx + lua) ─────────────────────────────────────
   nginx:
@@ -64,6 +147,7 @@ services:
     restart: unless-stopped
     depends_on:
       - server
+      - worker
       - transparency-proxy
       - puppeteer-proxy
     ports:
@@ -100,10 +184,14 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      PROXY_BASE_URL: "https://localhost"
+      PROXY_BASE_URL: "https://194.76.224.148"
       # UPSTREAM_PROXY: "http://user:pass@proxy-host:8080"
+    volumes:
+      - ./bins/decache:/var/cache/decentralized
     expose:
       - "80"
 
 volumes:
   pgdata:
+  mongodata:
+  chdata:

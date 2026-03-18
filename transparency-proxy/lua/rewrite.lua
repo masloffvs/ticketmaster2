@@ -48,7 +48,7 @@ function _M.rewrite(body)
 
         -- JS template literals: `https://${host}` `https://${gecHost}` и т.п.
         -- В исходнике буквально "https://${" — меняем на "http://${"
-        body = ngx.re.gsub(body, [[https://\$\{]], "http://${", "ijo")
+        body = ngx.re.gsub(body, [[https://\$\{]], "http://$${", "ijo")
 
         -- JS конкатенация: "https://" + host → "http://" + host
         body = ngx.re.gsub(body, [["https://"(\s*\+)]], '"http://"$1', "ijo")

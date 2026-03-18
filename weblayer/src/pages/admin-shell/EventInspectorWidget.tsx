@@ -380,7 +380,13 @@ interface HistoryEntry {
   state: InspectorState;
 }
 
-type ModalDataKey = "topology" | "manifest" | "geometry" | "facets" | "quickpicks" | "persist";
+type ModalDataKey =
+  | "topology"
+  | "manifest"
+  | "geometry"
+  | "facets"
+  | "quickpicks"
+  | "persist";
 
 /* ── Component ───────────────────────────────────────────────── */
 
@@ -499,7 +505,14 @@ export const EventInspectorWidget = () => {
     setModalEntry(entry);
     // Auto-select first available tab
     const avail = (
-      ["topology", "manifest", "geometry", "facets", "quickpicks", "persist"] as const
+      [
+        "topology",
+        "manifest",
+        "geometry",
+        "facets",
+        "quickpicks",
+        "persist",
+      ] as const
     ).find((k) => entry[k].status === "ok");
     setModalTab(avail ?? "topology");
     setModalOpen(true);
@@ -537,40 +550,47 @@ export const EventInspectorWidget = () => {
 
       {/* ── Status cards ───── */}
       <Grid>
-        {(["topology", "manifest", "geometry", "facets", "quickpicks", "persist"] as const).map(
-          (key) => {
-            const r = state[key];
-            return (
-              <Card
-                key={key}
-                $status={r.status}
-                onClick={() => {
-                  if (r.status === "ok") openModal(state);
-                }}
-              >
-                <CardLabel>
-                  {r.status === "loading" ? (
-                    <Spinner />
-                  ) : (
-                    <StatusDot $color={statusColor(r.status)} />
-                  )}
-                  {r.label}
-                </CardLabel>
-                <CardValue>
-                  {r.status === "idle" && "—"}
-                  {r.status === "loading" && "Fetching…"}
-                  {r.status === "ok" &&
-                    (r.sizeBytes != null ? fmtBytes(r.sizeBytes) : "OK")}
-                  {r.status === "error" && "Failed"}
-                </CardValue>
-                <CardSub>
-                  {r.status === "ok" && r.ms != null && `${r.ms}ms`}
-                  {r.status === "error" && r.error}
-                </CardSub>
-              </Card>
-            );
-          },
-        )}
+        {(
+          [
+            "topology",
+            "manifest",
+            "geometry",
+            "facets",
+            "quickpicks",
+            "persist",
+          ] as const
+        ).map((key) => {
+          const r = state[key];
+          return (
+            <Card
+              key={key}
+              $status={r.status}
+              onClick={() => {
+                if (r.status === "ok") openModal(state);
+              }}
+            >
+              <CardLabel>
+                {r.status === "loading" ? (
+                  <Spinner />
+                ) : (
+                  <StatusDot $color={statusColor(r.status)} />
+                )}
+                {r.label}
+              </CardLabel>
+              <CardValue>
+                {r.status === "idle" && "—"}
+                {r.status === "loading" && "Fetching…"}
+                {r.status === "ok" &&
+                  (r.sizeBytes != null ? fmtBytes(r.sizeBytes) : "OK")}
+                {r.status === "error" && "Failed"}
+              </CardValue>
+              <CardSub>
+                {r.status === "ok" && r.ms != null && `${r.ms}ms`}
+                {r.status === "error" && r.error}
+              </CardSub>
+            </Card>
+          );
+        })}
       </Grid>
 
       {/* ── History table ───── */}
@@ -654,25 +674,30 @@ export const EventInspectorWidget = () => {
               <CloseBtn onClick={() => setModalOpen(false)}>Close</CloseBtn>
             </ModalHeader>
             <ModalTabs>
-              {([
-                "topology", "manifest", "geometry", "facets", "quickpicks", "persist",
-              ] as const).map(
-                (key) => (
-                  <ModalTab
-                    key={key}
-                    $active={modalTab === key}
-                    onClick={() => setModalTab(key)}
-                  >
-                    {modalEntry[key].label}
-                    {modalEntry[key].status === "ok" && (
-                      <span style={{ color: "#4ade80", marginLeft: 4 }}>✓</span>
-                    )}
-                    {modalEntry[key].status === "error" && (
-                      <span style={{ color: "#f87171", marginLeft: 4 }}>✗</span>
-                    )}
-                  </ModalTab>
-                ),
-              )}
+              {(
+                [
+                  "topology",
+                  "manifest",
+                  "geometry",
+                  "facets",
+                  "quickpicks",
+                  "persist",
+                ] as const
+              ).map((key) => (
+                <ModalTab
+                  key={key}
+                  $active={modalTab === key}
+                  onClick={() => setModalTab(key)}
+                >
+                  {modalEntry[key].label}
+                  {modalEntry[key].status === "ok" && (
+                    <span style={{ color: "#4ade80", marginLeft: 4 }}>✓</span>
+                  )}
+                  {modalEntry[key].status === "error" && (
+                    <span style={{ color: "#f87171", marginLeft: 4 }}>✗</span>
+                  )}
+                </ModalTab>
+              ))}
             </ModalTabs>
             <ModalBody>
               {modalEntry[modalTab].status === "ok"

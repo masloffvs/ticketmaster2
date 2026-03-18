@@ -1,0 +1,11 @@
+{
+  "name": "ticketmaster2",
+  "private": true,
+  "workspaces": [
+    "logger",
+    "serverlayer",
+    "workerslayer",
+    "weblayer",
+    "ticketmaster-sdk"
+  ]
+}

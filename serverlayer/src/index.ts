@@ -4,7 +4,13 @@ import { Logger } from "@/core/logger";
 import { shutdownTelemetry, startTelemetry } from "@/core/telemetry";
 import { DatabaseProvider } from "@/db";
 import { Migrator } from "@/db/migrator";
-import { artistRoutes, eventRoutes, healthRoutes } from "@/routes";
+import {
+  artistRoutes,
+  eventRoutes,
+  healthRoutes,
+  logsRoutes,
+  topologyRoutes,
+} from "@/routes";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import { Elysia } from "elysia";
@@ -55,6 +61,8 @@ const app = new Elysia()
   .use(healthRoutes)
   .use(eventRoutes)
   .use(artistRoutes)
+  .use(topologyRoutes)
+  .use(logsRoutes)
   .listen(config.port);
 
 logger.info(
@@ -67,6 +75,7 @@ logger.info(
 // ─── Graceful shutdown ──────────────────────────────────────────
 process.on("SIGTERM", async () => {
   logger.info("Shutting down...");
+  logger.shutdown();
   await shutdownTelemetry();
   process.exit(0);
 });

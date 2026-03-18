@@ -1,24 +1,24 @@
 import { Singleton } from "@/core/di";
-import pino from "pino";
+import {
+  clickhouseFromEnv,
+  createLogger,
+  shutdownLogger,
+} from "@ticketmaster/logger";
+import type pino from "pino";
 
 @Singleton()
 export class Logger {
   private readonly instance: pino.Logger;
 
   constructor() {
-    const isDev =
-      Bun.env.NODE_ENV !== "production" &&
-      typeof (globalThis as any).Bun?.embeddedFiles === "undefined";
-
-    this.instance = pino({
-      level: Bun.env.LOG_LEVEL ?? "info",
-      transport: isDev
-        ? { target: "pino-pretty", options: { colorize: true } }
-        : undefined,
-      base: {
-        service: "ticketmaster-api",
-        env: Bun.env.NODE_ENV ?? "development",
-      },
+    this.instance = createLogger({
+      service: "ticketmaster-api",
+      env: Bun.env.NODE_ENV,
+      level: (Bun.env.LOG_LEVEL as pino.Level) ?? "info",
+      clickhouse: clickhouseFromEnv(),
+      pretty:
+        Bun.env.NODE_ENV !== "production" &&
+        typeof (globalThis as any).Bun?.embeddedFiles === "undefined",
     });
   }
 
@@ -44,5 +44,9 @@ export class Logger {
 
   get raw(): pino.Logger {
     return this.instance;
+  }
+
+  shutdown(): void {
+    shutdownLogger();
   }
 }
