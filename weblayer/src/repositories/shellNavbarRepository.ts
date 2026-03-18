@@ -16,7 +16,7 @@ const SHELL_NAVBAR_GROUPS: ShellNavGroup[] = [
   },
   {
     title: "Data",
-    items: ["Event Inspector"],
+    items: ["Event Inspector", "Partners", "Orders"],
   },
   {
     title: "Integrations",

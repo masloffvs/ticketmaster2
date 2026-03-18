@@ -50,8 +50,9 @@ mkdir -p "$BINS_DIR"
 smart_install "logger"
 smart_install "workerslayer"
 smart_install "serverlayer"
+smart_install "puppeteer-proxy"
 smart_install "weblayer"
-smart_install "logger" 
+smart_install "logger"
 
 echo "----------------------------------------"
 

@@ -111,6 +111,14 @@ function App() {
             </LazyRoute>
           }
         />
+        <Route
+          path="/partner"
+          element={
+            <LazyRoute>
+              <PartnerPage />
+            </LazyRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

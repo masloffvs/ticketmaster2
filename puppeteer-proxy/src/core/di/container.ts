@@ -20,10 +20,6 @@ interface Provider<T = unknown> {
 
 // ─── Decorators ─────────────────────────────────────────────────
 
-/**
- * Marks a class as injectable into the DI container.
- * Optionally accepts `{ singleton: true }` to register as a singleton.
- */
 export function Injectable(options?: { singleton?: boolean }): ClassDecorator {
   return (target) => {
     Reflect.defineMetadata(INJECTABLE_KEY, true, target);
@@ -33,9 +29,6 @@ export function Injectable(options?: { singleton?: boolean }): ClassDecorator {
   };
 }
 
-/**
- * Shorthand for `@Injectable({ singleton: true })`.
- */
 export function Singleton(): ClassDecorator {
   return (target) => {
     Reflect.defineMetadata(INJECTABLE_KEY, true, target);
@@ -43,10 +36,6 @@ export function Singleton(): ClassDecorator {
   };
 }
 
-/**
- * Parameter decorator — override the token used for injection.
- * Usage: `constructor(@Inject('DB') private db: Database)`
- */
 export function Inject(token: Token): ParameterDecorator {
   return (target, _propertyKey, parameterIndex) => {
     const existing: Map<number, Token> =
@@ -62,17 +51,11 @@ export class Container {
   private providers = new Map<Token, Provider>();
   private singletons = new Map<Token, unknown>();
 
-  /**
-   * Register a provider manually.
-   */
   register<T>(provider: Provider<T>): this {
     this.providers.set(provider.token, provider);
     return this;
   }
 
-  /**
-   * Register a class as a provider. Reads @Injectable / @Singleton metadata.
-   */
   registerClass<T>(cls: Constructor<T>): this {
     const isSingleton = Reflect.getMetadata(SINGLETON_KEY, cls) === true;
     this.providers.set(cls, {
@@ -83,17 +66,11 @@ export class Container {
     return this;
   }
 
-  /**
-   * Register a pre-built value (useful for configs, external clients, etc.).
-   */
   registerValue<T>(token: Token, value: T): this {
     this.providers.set(token, { token, useValue: value, singleton: true });
     return this;
   }
 
-  /**
-   * Register a factory function.
-   */
   registerFactory<T>(
     token: Token,
     factory: () => T,
@@ -107,20 +84,15 @@ export class Container {
     return this;
   }
 
-  /**
-   * Resolve a dependency by token (class, string, or symbol).
-   */
   resolve<T>(token: Constructor<T>): T;
   resolve<T>(token: string | symbol): T;
   resolve<T>(token: Token): T {
-    // Check singleton cache
     if (this.singletons.has(token)) {
       return this.singletons.get(token) as T;
     }
 
     const provider = this.providers.get(token) as Provider<T> | undefined;
     if (!provider) {
-      // Auto-resolve if it's a constructor marked @Injectable
       if (
         typeof token === "function" &&
         Reflect.getMetadata(INJECTABLE_KEY, token)
@@ -151,9 +123,6 @@ export class Container {
     return instance;
   }
 
-  /**
-   * Instantiate a class by resolving its constructor dependencies.
-   */
   private construct<T>(cls: Constructor<T>): T {
     const paramTypes: Constructor[] =
       Reflect.getMetadata("design:paramtypes", cls) ?? [];
@@ -173,5 +142,4 @@ export class Container {
   }
 }
 
-// ─── Global container instance ──────────────────────────────────
 export const container = new Container();

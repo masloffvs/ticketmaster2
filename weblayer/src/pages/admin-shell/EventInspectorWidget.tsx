@@ -19,6 +19,7 @@ interface InspectorState {
   facets: FetchResult;
   quickpicks: FetchResult;
   persist: FetchResult;
+  persistIsmds: FetchResult;
 }
 
 const INIT: InspectorState = {
@@ -27,7 +28,8 @@ const INIT: InspectorState = {
   geometry: { label: "Geometry", status: "idle" },
   facets: { label: "Facets", status: "idle" },
   quickpicks: { label: "Quickpicks", status: "idle" },
-  persist: { label: "Persist (Worker)", status: "idle" },
+  persist: { label: "Persist Topology", status: "idle" },
+  persistIsmds: { label: "Persist ISMDS", status: "idle" },
 };
 
 /* ── Styled ──────────────────────────────────────────────────── */
@@ -386,7 +388,8 @@ type ModalDataKey =
   | "geometry"
   | "facets"
   | "quickpicks"
-  | "persist";
+  | "persist"
+  | "persistIsmds";
 
 /* ── Component ───────────────────────────────────────────────── */
 
@@ -418,7 +421,8 @@ export const EventInspectorWidget = () => {
         geometry: { label: "Geometry", status: "loading" },
         facets: { label: "Facets", status: "loading" },
         quickpicks: { label: "Quickpicks", status: "loading" },
-        persist: { label: "Persist (Worker)", status: "loading" },
+        persist: { label: "Persist Topology", status: "loading" },
+        persistIsmds: { label: "Persist ISMDS", status: "loading" },
       };
       setState({ ...next });
 
@@ -460,6 +464,14 @@ export const EventInspectorWidget = () => {
         {
           key: "persist",
           promise: timedFetch("/api/worker/topology/fetch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ eventId: eid }),
+          }),
+        },
+        {
+          key: "persistIsmds",
+          promise: timedFetch("/api/worker/ismds/fetch", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ eventId: eid }),
@@ -512,6 +524,7 @@ export const EventInspectorWidget = () => {
         "facets",
         "quickpicks",
         "persist",
+        "persistIsmds",
       ] as const
     ).find((k) => entry[k].status === "ok");
     setModalTab(avail ?? "topology");
@@ -558,6 +571,7 @@ export const EventInspectorWidget = () => {
             "facets",
             "quickpicks",
             "persist",
+            "persistIsmds",
           ] as const
         ).map((key) => {
           const r = state[key];
@@ -609,6 +623,7 @@ export const EventInspectorWidget = () => {
                 <th>Facets</th>
                 <th>Quickpicks</th>
                 <th>Persist</th>
+                <th>ISMDS</th>
                 <th />
               </tr>
             </thead>
@@ -653,6 +668,11 @@ export const EventInspectorWidget = () => {
                       ? `✓ ${h.state.persist.ms}ms`
                       : "✗"}
                   </TdStatus>
+                  <TdStatus $ok={h.state.persistIsmds.status === "ok"}>
+                    {h.state.persistIsmds.status === "ok"
+                      ? `✓ ${h.state.persistIsmds.ms}ms`
+                      : "✗"}
+                  </TdStatus>
                   <Td>
                     <InspectBtn onClick={() => openModal(h.state)}>
                       View Data
@@ -682,6 +702,7 @@ export const EventInspectorWidget = () => {
                   "facets",
                   "quickpicks",
                   "persist",
+                  "persistIsmds",
                 ] as const
               ).map((key) => (
                 <ModalTab

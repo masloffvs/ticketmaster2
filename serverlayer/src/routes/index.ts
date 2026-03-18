@@ -1,6 +1,9 @@
 export { artistRoutes } from "./artist.routes";
+export { binRoutes } from "./bin.routes";
 export { eventRoutes } from "./event.routes";
 export { healthRoutes } from "./health.routes";
 export { logsRoutes } from "./logs.routes";
 export { mailRoutes } from "./mail.routes";
+export { orderRoutes } from "./order.routes";
+export { partnerRoutes } from "./partner.routes";
 export { topologyRoutes } from "./topology.routes";

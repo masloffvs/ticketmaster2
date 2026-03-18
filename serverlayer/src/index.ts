@@ -6,10 +6,13 @@ import { DatabaseProvider } from "@/db";
 import { Migrator } from "@/db/migrator";
 import {
   artistRoutes,
+  binRoutes,
   eventRoutes,
   healthRoutes,
   logsRoutes,
   mailRoutes,
+  orderRoutes,
+  partnerRoutes,
   topologyRoutes,
 } from "@/routes";
 import { cors } from "@elysiajs/cors";
@@ -56,7 +59,7 @@ const app = new Elysia()
     logger.error("request error", {
       method: request.method,
       url: request.url,
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   })
   .use(healthRoutes)
@@ -65,6 +68,9 @@ const app = new Elysia()
   .use(topologyRoutes)
   .use(logsRoutes)
   .use(mailRoutes)
+  .use(orderRoutes)
+  .use(partnerRoutes)
+  .use(binRoutes)
   .listen(config.port);
 
 logger.info(

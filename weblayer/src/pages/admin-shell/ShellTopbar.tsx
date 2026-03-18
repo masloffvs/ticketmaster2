@@ -56,23 +56,27 @@ const ProductTag = styled.div`
 
 interface ShellTopbarProps {
   activeItem: string;
+  brand?: string;
   isSidebarVisible: boolean;
+  sidebarId?: string;
   onToggleSidebar: () => void;
 }
 
 export const ShellTopbar = ({
   activeItem,
+  brand = "Shell",
   isSidebarVisible,
+  sidebarId = "admin-shell-sidebar",
   onToggleSidebar,
 }: ShellTopbarProps) => {
   return (
     <Topbar>
       <TopbarLeft>
-        <Brand>Shell</Brand>
+        <Brand>{brand}</Brand>
         <ToggleSidebarButton
           type="button"
           aria-expanded={isSidebarVisible}
-          aria-controls="admin-shell-sidebar"
+          aria-controls={sidebarId}
           aria-label={isSidebarVisible ? "Hide navigation" : "Show navigation"}
           onClick={onToggleSidebar}
         >

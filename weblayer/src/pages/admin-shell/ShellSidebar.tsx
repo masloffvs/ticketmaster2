@@ -144,10 +144,14 @@ const SearchLabel = styled.label`
 
 interface ShellSidebarProps {
   activeItem: string;
+  ariaLabel?: string;
   filteredGroups: ShellNavGroup[];
   isSidebarVisible: boolean;
   openGroups: Record<string, boolean>;
+  searchId?: string;
+  searchPlaceholder?: string;
   searchQuery: string;
+  sidebarId?: string;
   onSearchChange: (value: string) => void;
   onSelectItem: (item: string) => void;
   onToggleGroup: (groupTitle: string) => void;
@@ -155,20 +159,24 @@ interface ShellSidebarProps {
 
 export const ShellSidebar = ({
   activeItem,
+  ariaLabel = "Shell navigation",
   filteredGroups,
   isSidebarVisible,
   openGroups,
+  searchId = "admin-shell-search",
+  searchPlaceholder = "Find module...",
   searchQuery,
+  sidebarId = "admin-shell-sidebar",
   onSearchChange,
   onSelectItem,
   onToggleGroup,
 }: ShellSidebarProps) => {
   return (
-    <Sidebar id="admin-shell-sidebar" $visible={isSidebarVisible} aria-label="Shell navigation">
-      <SearchLabel htmlFor="admin-shell-search">Find module</SearchLabel>
+    <Sidebar id={sidebarId} $visible={isSidebarVisible} aria-label={ariaLabel}>
+      <SearchLabel htmlFor={searchId}>Find module</SearchLabel>
       <Search
-        id="admin-shell-search"
-        placeholder="Find module..."
+        id={searchId}
+        placeholder={searchPlaceholder}
         value={searchQuery}
         onChange={(event) => onSearchChange(event.target.value)}
       />

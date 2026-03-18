@@ -5,13 +5,17 @@ import postgres from "postgres";
 
 // Embed SQL at compile time — works inside bun --compile binaries
 import init from "@/migrations/001_init.sql" with { type: "text" };
-import emailDeliveries from "@/migrations/002_email_deliveries.sql" with {
-  type: "text",
-};
+import emailDeliveries from "@/migrations/002_email_deliveries.sql" with { type: "text" };
+import partners from "@/migrations/002_partners.sql" with { type: "text" };
+import orders from "@/migrations/003_orders.sql" with { type: "text" };
+import partnerDomains from "@/migrations/004_partner_domains.sql" with { type: "text" };
 
 const MIGRATIONS: { name: string; sql: string }[] = [
   { name: "001_init.sql", sql: init },
   { name: "002_email_deliveries.sql", sql: emailDeliveries },
+  { name: "002_partners.sql", sql: partners },
+  { name: "003_orders.sql", sql: orders },
+  { name: "004_partner_domains.sql", sql: partnerDomains },
 ];
 
 @Singleton()

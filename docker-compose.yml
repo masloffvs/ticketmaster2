@@ -170,6 +170,10 @@ services:
       PORT: "3100"
       POOL_SIZE: "3"
       PAGE_TIMEOUT: "30000"
+      CLICKHOUSE_URL: "http://clickhouse:8123"
+      CLICKHOUSE_DB: "logs"
+      CLICKHOUSE_USER: "default"
+      CLICKHOUSE_PASSWORD: "clickhouse"
     expose:
       - "3100"
     deploy:

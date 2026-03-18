@@ -2,6 +2,8 @@ import styled from "styled-components";
 import { EmailWidget } from "./EmailWidget";
 import { EventInspectorWidget } from "./EventInspectorWidget";
 import { LoggerWidget } from "./LoggerWidget";
+import { OrderStudioWidget } from "./OrderStudioWidget";
+import { PartnerAccountsWidget } from "./PartnerAccountsWidget";
 import { ProxySegmentsWidget } from "./ProxySegmentsWidget";
 import { ProxyTrafficWidget } from "./ProxyTrafficWidget";
 import { RecentRequestsWidget } from "./RecentRequestsWidget";
@@ -62,6 +64,8 @@ export const ShellCanvas = ({ activeItem }: ShellCanvasProps) => {
           {activeItem === "Topology API" && <TopologyWidget />}
           {activeItem === "Event Inspector" && <EventInspectorWidget />}
           {activeItem === "Email" && <EmailWidget />}
+          {activeItem === "Partners" && <PartnerAccountsWidget />}
+          {activeItem === "Orders" && <OrderStudioWidget />}
         </CanvasSurface>
       </Canvas>
     </CanvasWrap>

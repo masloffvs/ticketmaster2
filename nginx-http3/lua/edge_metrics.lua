@@ -24,6 +24,7 @@ function _M.classify(uri, upstream)
     if uri:find("^/swagger") then                 return "serverlayer_api" end
     if uri:find("^/sign%-in") then                return "spa"            end
     if uri:find("^/shell") then                   return "spa"            end
+    if uri:find("^/partner") then                 return "spa"            end
     -- SPA event pages: /event/:id or /:slug/event/:id
     if uri:find("^/event/[^/]+$") then            return "spa"            end
     if uri:find("/event/[^/]+$") then             return "spa"            end
