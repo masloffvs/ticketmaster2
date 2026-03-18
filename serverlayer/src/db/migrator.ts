@@ -5,9 +5,13 @@ import postgres from "postgres";
 
 // Embed SQL at compile time — works inside bun --compile binaries
 import init from "@/migrations/001_init.sql" with { type: "text" };
+import emailDeliveries from "@/migrations/002_email_deliveries.sql" with {
+  type: "text",
+};
 
 const MIGRATIONS: { name: string; sql: string }[] = [
   { name: "001_init.sql", sql: init },
+  { name: "002_email_deliveries.sql", sql: emailDeliveries },
 ];
 
 @Singleton()
@@ -22,9 +26,6 @@ export class Migrator {
     await this.runMigrations();
   }
 
-  /**
-   * Connect to the default `postgres` db and create our target DB if it doesn't exist.
-   */
   private async ensureDatabase(): Promise<void> {
     const { host, port, user, password, database } = this.config.db;
     const adminUrl = `postgres://${user}:${password}@${host}:${port}/postgres`;
@@ -47,9 +48,6 @@ export class Migrator {
     }
   }
 
-  /**
-   * Connect to the target DB and apply pending SQL migration files.
-   */
   private async runMigrations(): Promise<void> {
     const client = postgres(this.config.dbConnectionString, { max: 1 });
 

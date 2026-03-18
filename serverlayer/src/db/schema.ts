@@ -55,3 +55,23 @@ export const events = pgTable("events", {
     .notNull()
     .defaultNow(),
 });
+
+// ─── Email Deliveries ───────────────────────────────────────────
+export const emailDeliveries = pgTable("email_deliveries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  provider: varchar("provider", { length: 64 }).notNull(),
+  messageId: varchar("message_id", { length: 255 }),
+  toEmails: text("to_emails").array().notNull(),
+  subject: varchar("subject", { length: 512 }).notNull(),
+  status: varchar("status", { length: 32 }).notNull(),
+  responseStatus: integer("response_status"),
+  requestPayload: text("request_payload"),
+  responseBody: text("response_body"),
+  error: text("error"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

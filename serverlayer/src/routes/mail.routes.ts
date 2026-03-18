@@ -7,6 +7,18 @@ export const mailRoutes = new Elysia({ prefix: "/mail" })
     const service = container.resolve(MailService);
     return service.getConfigStatus();
   })
+  .get(
+    "/metrics",
+    async ({ query }) => {
+      const service = container.resolve(MailService);
+      return service.getMetrics(query.limit ? Number(query.limit) : undefined);
+    },
+    {
+      query: t.Object({
+        limit: t.Optional(t.String()),
+      }),
+    },
+  )
   .post(
     "/test",
     async ({ body, set }) => {

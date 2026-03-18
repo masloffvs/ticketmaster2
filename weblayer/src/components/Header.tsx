@@ -309,6 +309,9 @@ export const Header = () => {
               <a href="/help">{t("header.help")}</a>
             </li>
             <li>
+              <a href="/partner">Partner</a>
+            </li>
+            <li>
               <a href="/vip">{t("header.vip")}</a>
             </li>
           </ul>
@@ -375,3 +378,5 @@ export const Header = () => {
     </HeaderWrapper>
   );
 };
+
+

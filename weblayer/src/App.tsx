@@ -26,6 +26,11 @@ const AdminShellPage = lazy(() =>
     default: module.AdminShellPage,
   })),
 );
+const PartnerPage = lazy(() =>
+  import("./pages/PartnerPage").then((module) => ({
+    default: module.PartnerPage,
+  })),
+);
 
 const AppContainer = styled.div`
   display: flex;
@@ -66,16 +71,22 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Layout WITH Header */}
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path=":artistSlug/artist/:artistId" element={<ArtistPage />} />
           <Route path="event/:eventId" element={<EventPage />} />
           <Route path=":eventSlug/event/:eventId" element={<EventPage />} />
           <Route path="event/:eventSlug/:eventId" element={<EventPage />} />
+          <Route
+            path="partner"
+            element={
+              <LazyRoute>
+                <PartnerPage />
+              </LazyRoute>
+            }
+          />
         </Route>
 
-        {/* Layout WITHOUT Header - specifically auth page */}
         <Route
           path="/sign-in"
           element={
